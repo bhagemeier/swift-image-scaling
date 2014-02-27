@@ -72,7 +72,7 @@ class ImageScalerMiddleware(object):
         req = Request(env)
 
         try:
-            version, account, container, obj = req.split_path(1, 4, True)
+            version, account, container, obj = req.split_path(4, 4, True)
         except ValueError:
             return self.app(env, start_response)
 
