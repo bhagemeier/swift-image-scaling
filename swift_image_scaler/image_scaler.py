@@ -102,15 +102,13 @@ class ImageScalerMiddleware(object):
                              "allowed. Nothing for us to do.")
             return self.app(env, start_response)
 
+        # default allowed extensions
+        allowed_exts = ['jpg','png','gif']
         # check whether file has the allowed ending
-        if not meta.has_key('image-scaling-extensions'):
-            self.logger.info("image-scaler: no allowed extensions"
-                              " given for image scaling. Nothing"
-                              " for us to do.")
-            return self.app(env, start_response)
+        if meta.has_key('image-scaling-extensions'):
+            allowed_exts = meta['image-scaling-extensions'].split(',')
 
         requested_ext = req.path.rsplit('.', 1)[-1]
-        allowed_exts = meta['image-scaling-extensions'].split(',')
         if not requested_ext.lower() in map(lambda x: x.lower(), allowed_exts):
             self.logger.info("image-scaler: extension %s not allowed"
                               " for image scaling" % requested_ext)
