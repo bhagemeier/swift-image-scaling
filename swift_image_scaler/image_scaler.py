@@ -63,6 +63,10 @@ class ImageScalerMiddleware(object):
 
     def __init__(self, app, conf, logger=None):
         self.app = app
+        if conf is None:
+            conf = {}
+        else:
+            self.conf = conf
         if logger:
             self.logger = logger
         else:
@@ -103,7 +107,9 @@ class ImageScalerMiddleware(object):
             return self.app(env, start_response)
 
         # default allowed extensions
-        allowed_exts = ['jpg','png','gif']
+        allowed_exts = self.conf.get('formats', 'jpg;png;gif')
+        allowed_exts = allowed_exts.lower()
+        allowed_exts = allowed_exts.split(';')
         # check whether file has the allowed ending
         if meta.has_key('image-scaling-extensions'):
             allowed_exts = meta['image-scaling-extensions'].split(',')
@@ -114,8 +120,14 @@ class ImageScalerMiddleware(object):
                               " for image scaling" % requested_ext)
             return self.app(env, start_response)
 
-        # 20MB
-        max_size = 20971520
+        # get maxsize from config, otherwise 20 MB
+        max_size = self.conf.get('maxsize', '20971520')
+        try:
+            max_size = int(max_size)
+        except ValueError:
+            max_size = 20971520
+            self.logger.error("wrong format for max_size from configuration file, using 20 MB")
+
         if meta.has_key('image-scaling-max-size'):
             max_size = int(meta['image-scaling-max-size'])
         obj_info = get_object_info(req.environ, self.app, swift_source="ImageScalerMiddleware")
