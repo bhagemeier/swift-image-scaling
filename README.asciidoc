@@ -5,6 +5,16 @@ This is a Python Paste middleware for OpenStack Swift.  It is meant to
 scale down images served through Swift.  For this purpose, it is using
 the PythonMagick Python binding for the ImageMagick Library.
 
+Installation
+------------
+
+Install this middleware by running the following command from the
+source's base directory.
+
+-----
+# python setup.py install
+-----
+
 Configuration
 -------------
 
@@ -52,4 +62,4 @@ The extensions are case insensitive, so "PNG" or "jpg" would be valid,
 too. The default set of extensions includes "jpg", "png", "gif".
 
 As a last measure, only objects less than ++image-scaling-max-size++ will
-be consideres. The default value for this is 20971520 (20MB).
+be considered. The default value for this is 20971520 (20MB).
