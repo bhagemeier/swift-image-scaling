@@ -1,0 +1,55 @@
+Swift Image Scaler
+==================
+
+This is a Python Paste middleware for OpenStack Swift.  It is meant to
+scale down images served through Swift.  For this purpose, it is using
+the PythonMagick Python binding for the ImageMagick Library.
+
+Configuration
+-------------
+
+This middleware needs to be added to the proxy-server pipeline. Just
+add it right before the proxy-server application.
+
+./etc/swift/proxy-server.conf
+-----
+...
+
+[pipeline:main]
+pipeline = healthcheck authtoken keystoneauth image-scaler proxy-server
+
+[filter:image-scaler]
+use = egg:swift-image-scaler#image_scaler_filter
+
+...
+-----
+
+Safe Guards
+-----------
+
+We have introduced some safe guards in order to protect the hosting swift-proxy
+server from abuse and malfunction.
+
+As a first measure, the feature must be enabled per container. In
+order to do this, you need to set metadata on the container. Set
+++image-scaling++ to "true" (case insensitive) or "1" to enable the
+feature. Using the following example, you would enable image scaling
+on the image-scaling-test container. The other attributes below can be
+set analogously.
+
+-----
+$ swift post -m 'image-scaling: True' image-scaling-test
+-----
+
+Secondly, the image object has to have an allowed extension, which can
+be set as ++image-scaling-extensions++. Just add a comma-separated list
+of extensions without "." or spaces. Thus, swift stat should display
+something like this.
+
+Meta Image-Scaling-Extensions: png,JPG
+
+The extensions are case insensitive, so "PNG" or "jpg" would be valid,
+too. The default set of extensions includes "jpg", "png", "gif".
+
+As a last measure, only objects less than ++image-scaling-max-size++ will
+be consideres. The default value for this is 20971520 (20MB).
