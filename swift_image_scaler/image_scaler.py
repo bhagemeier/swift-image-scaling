@@ -36,7 +36,6 @@ from swift.common.utils import get_logger
 from swift.proxy.controllers.base import get_container_info, get_object_info
 from swift.common.swob import Request, Response
 
-from paste.response import header_value, remove_header
 from paste.httpheaders import CONTENT_LENGTH
 
 from StringIO import StringIO
@@ -151,17 +150,28 @@ class ImageScalerResponse(object):
         self.outbuffer = Blob()
         self.content_length = None
         self.logger = logger
+        self.scale = True
 
     def scaler_start_response(self, status, headers, exc_info=None):
-        remove_header(headers, 'content-length')
+        if not status.startswith('2'):
+            self.scale = False
         self.headers = headers
         self.status = status
         return self.outbuffer.data
 
     def write(self):
-        return [self.outbuffer.data]
+        if self.scale:
+            return [self.outbuffer.data]
+        else:
+            return self.output
 
     def finish_response(self, app_iter):
+        if not self.scale:
+            self.start_response(self.status, self.headers)
+            self.output = app_iter
+            return
+
+        CONTENT_LENGTH.delete(self.headers)
         inBuffer = StringIO()
         try:
             for s in app_iter:
@@ -182,14 +192,6 @@ class ImageScalerResponse(object):
         content_length = self.outbuffer.length()
         CONTENT_LENGTH.update(self.headers, content_length)
         self.start_response(self.status, self.headers)
-
-def scale_image(data, size):
-    image = Image(data)
-    image.scale(size)
-    rawImage = Blob()
-    image.write(rawImage)
-    return [rawImage]
-
 
 def filter_factory(global_conf, **local_conf):
     """
