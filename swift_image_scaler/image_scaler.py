@@ -36,7 +36,7 @@ from swift.common.utils import get_logger
 from swift.proxy.controllers.base import get_container_info, get_object_info
 from swift.common.swob import Request, Response
 
-from paste.httpheaders import CONTENT_LENGTH
+from paste.httpheaders import CONTENT_LENGTH, CACHE_CONTROL
 
 from StringIO import StringIO
 
@@ -191,6 +191,7 @@ class ImageScalerResponse(object):
 
         content_length = self.outbuffer.length()
         CONTENT_LENGTH.update(self.headers, content_length)
+        CACHE_CONTROL.update(self.headers, s_maxage=CACHE_CONTROL.ONE_HOUR)
         self.start_response(self.status, self.headers)
 
 def filter_factory(global_conf, **local_conf):
