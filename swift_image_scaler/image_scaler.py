@@ -153,7 +153,9 @@ class ImageScalerResponse(object):
         self.scale = True
 
     def scaler_start_response(self, status, headers, exc_info=None):
-        if not status.startswith('2'):
+	if status.startswith('304'):
+	    CONTENT_LENGTH.delete(self.headers)
+	if not status.startswith('2'):
             self.scale = False
         self.headers = headers
         self.status = status
